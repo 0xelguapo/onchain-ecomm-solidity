@@ -21,8 +21,15 @@ contract ItemManager is Ownable {
     }
 
     S_Item[] public allItems;
+
     mapping(uint => S_Item) public items;
     uint index;
+
+    mapping(address => S_Item[]) public myOrders;
+
+    function getAllOrders(address _address) public view returns (S_Item[] memory) {
+        return myOrders[_address];
+    }
 
     function getAllItems() public view returns (S_Item[] memory) {
         return allItems;
@@ -45,12 +52,13 @@ contract ItemManager is Ownable {
         emit itemEvent(index, uint(SupplyChainSteps.Created), address(item), string(items[index].description));
     }
 
-    function triggerPayment(uint _index) public payable {
+    function triggerPayment(uint _index, address _buyer) public payable {
         Item item = items[_index]._item;
         require(address(item) == msg.sender, "Only items are allowed to update themselves, buddy boy!");
         require(msg.value == items[_index].priceInWei, "Pay up, buddy boy!");
         allItems[_index].timesPurchased++;
         items[_index].timesPurchased++;
+        myOrders[_buyer].push(items[_index]);
         emit itemEvent(index, uint(SupplyChainSteps.Purchased), address(item), string(items[index].description));
     }
     
